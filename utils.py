@@ -10,6 +10,7 @@ from easydict import EasyDict as edict
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
 def create_data_loaders(args):
+
     # Data loading code
     print("=> creating data loaders ...")
     traindir = os.path.join('data', args.data, 'train')
@@ -25,24 +26,20 @@ def create_data_loaders(args):
     elif args.sparsifier == ORBSampling.name:
         sparsifier = ORBSampling(num_samples=args.num_samples, max_depth=max_depth)
 
-    if not args.evaluate:
-        train_dataset = NYUDataset(traindir, type='train',
-            modality="rgbd", sparsifier=sparsifier)
+    train_dataset = NYUDataset(traindir, type='train',
+        modality="rgbd", sparsifier=sparsifier)
     val_dataset = NYUDataset(valdir, type='val',
         modality="rgbd", sparsifier=sparsifier)
-
 
     # set batch size to be 1 for validation
     val_loader = torch.utils.data.DataLoader(val_dataset,
         batch_size=1, shuffle=False, num_workers=args.workers, pin_memory=True)
 
-    # put construction of train loader here, for those who are interested in testing only
-    if not args.evaluate:
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=args.batch_size, shuffle=True,
-            num_workers=args.workers, pin_memory=True, sampler=None,
-            worker_init_fn=lambda work_id:np.random.seed(work_id))
-            # worker_init_fn ensures different sampling patterns for each data loading thread
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.workers, pin_memory=True, sampler=None,
+        worker_init_fn=lambda work_id:np.random.seed(work_id))
+        # worker_init_fn ensures different sampling patterns for each data loading thread
 
     print("=> data loaders created.")
     return train_loader, val_loader

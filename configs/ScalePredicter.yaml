@@ -6,8 +6,19 @@ lr_config:
     - 5
     - 10
     - 15
-batch_size: 8
 optim_config:
   AdamW:
     lr: 0.001
     weight_decay: 0.05
+
+
+start_epoch: 0
+nepoch: 11
+
+batch_size: 8
+max_depth: -1
+sparsifier: "orb_sampler"
+num_samples: 400
+modality: "rgbd"
+workers: 10
+data: "nyudepthv2"

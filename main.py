@@ -1,7 +1,8 @@
-#from model import ResNet
+from model import ResNet
 from utils import create_data_loaders, AverageMeter
 from utils_guide import init_lr_scheduler, init_optim, load_config
 import time
+import torch
 
 
 def train(epoch):
@@ -59,15 +60,15 @@ def train(epoch):
 
 
 if __name__ == '__main__':
-    #model = ResNet(layers = 18)
-    #model.cuda()
+    model = ResNet(layers = 18)
+    model.cuda()
 
     config = load_config("configs/ScalePredicter.yaml")
 
-    optimizer = init_optim(config, net)
+    optimizer = init_optim(config, model)
     lr_scheduler = init_lr_scheduler(config, optimizer)
 
-    trainloader, val_loader = create_data_loaders()
+    trainloader, val_loader = create_data_loaders(config)
 
     for epoch in range(config.start_epoch, config.nepoch):
         train(epoch)

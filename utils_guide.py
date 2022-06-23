@@ -9,7 +9,7 @@ import os
 import torch
 import random
 import numpy as np
-import encoding
+#import encoding
 from PIL import Image
 
 import yaml
@@ -17,7 +17,7 @@ from easydict import EasyDict as edict
 
 
 import optimizers
-package_directory = os.path.dirname(os.path.abspath(__file__))
+
 
 __all__ = [
     'AverageMeter',
@@ -181,11 +181,7 @@ def init_lr_scheduler(config, optimizer):
     key, params = config.lr_config.popitem()
     return getattr(torch.optim.lr_scheduler, key)(optimizer, **params)
 
-def load_config(path):
-    filename = os.path.join(package_directory, path)
-    with open(filename, 'r') as file:
-        config_data = yaml.load(file, Loader=yaml.FullLoader)
-    return edict(config_data)
+
 
 def load_model():
     # loads the GNS config
