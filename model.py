@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torchvision
 import math
+import torch
 
 def weights_init(m):
     # Initialize filters with Gaussian random weights

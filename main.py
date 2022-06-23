@@ -1,5 +1,4 @@
-from jinja2 import pass_eval_context
-from matplotlib import scale
+
 from model import ResNet
 from utils import create_data_loaders, AverageMeter, load_config, save_state, Result
 from utils_guide import init_lr_scheduler, init_optim
@@ -37,6 +36,7 @@ def train(epoch):
         # measure accuracy and record loss
         result = Result()
         result.evaluate(pred,scale_factor)
+        result.huber= loss.cpu().item()
         average_meter.update(result, gpu_time, data_time, input.size(0))
         end = time.time()
         
@@ -66,16 +66,23 @@ def train(epoch):
 def test():
     print("=> Running test:")
     global best_metric
-    Avg = AverageMeter()
+    average_meter = AverageMeter()
     model.eval()
     for batch_idx, (input, depth, scale_factor) in enumerate(val_loader):
         input, scale_factor = input.cuda(), scale_factor.cuda()
+        data_time = 0 
+        end = time.time()
         with torch.no_grad():
             pred = model(input)
-            prec = criterion(pred, scale_factor)
-        Avg.update(prec.item(), input.size(0))
+            loss = criterion(pred, scale_factor)
+        gpu_time = time.time() - end
+
+        result = Result()
+        result.evaluate(pred,scale_factor)
+        result.huber= loss.cpu().item()
+        average_meter.update(result, gpu_time, data_time, input.size(0))
         if batch_idx % config.print_freq == 0:
-          print(f"Batch: {batch_idx}, Loss: {prec.cpu().numpy()}")
+          print(f"Batch: {batch_idx}, Loss: {loss.cpu().numpy()}")
 
     print(f"Avg Loss: {Avg.avg}")
     if Avg.avg < best_metric:
