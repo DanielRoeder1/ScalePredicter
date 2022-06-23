@@ -62,7 +62,7 @@ if __name__ == '__main__':
     #model = ResNet(layers = 18)
     #model.cuda()
 
-    config = load_config()
+    config = load_config("configs/ScalePredicter.yaml")
 
     optimizer = init_optim(config, net)
     lr_scheduler = init_lr_scheduler(config, optimizer)

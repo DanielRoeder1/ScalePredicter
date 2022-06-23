@@ -1,0 +1,13 @@
+lr_config:
+  MultiStepLR:
+    gamma: 0.5
+    last_epoch: -1
+    milestones:
+    - 5
+    - 10
+    - 15
+batch_size: 8
+optim_config:
+  AdamW:
+    lr: 0.001
+    weight_decay: 0.05

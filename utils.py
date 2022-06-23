@@ -4,6 +4,10 @@ import os
 import numpy as np
 import torch
 
+import yaml
+from easydict import EasyDict as edict
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
 
 def create_data_loaders(args):
     # Data loading code
@@ -58,3 +62,9 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+
+def load_config(path):
+    filename = os.path.join(package_directory, path)
+    with open(filename, 'r') as file:
+        config_data = yaml.load(file, Loader=yaml.FullLoader)
+    return edict(config_data)

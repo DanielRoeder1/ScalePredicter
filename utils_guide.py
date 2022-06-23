@@ -181,7 +181,7 @@ def init_lr_scheduler(config, optimizer):
     key, params = config.lr_config.popitem()
     return getattr(torch.optim.lr_scheduler, key)(optimizer, **params)
 
-def load_config(path = "configs/ScalePredictor.yaml" ):
+def load_config(path):
     filename = os.path.join(package_directory, path)
     with open(filename, 'r') as file:
         config_data = yaml.load(file, Loader=yaml.FullLoader)
