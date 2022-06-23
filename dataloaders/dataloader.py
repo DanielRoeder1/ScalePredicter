@@ -4,6 +4,7 @@ import numpy as np
 import torch.utils.data as data
 import h5py
 import dataloaders.transforms as transforms
+import torch
 
 IMG_EXTENSIONS = ['.h5',]
 

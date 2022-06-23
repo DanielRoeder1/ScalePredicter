@@ -1,8 +1,12 @@
+from jinja2 import pass_eval_context
+from matplotlib import scale
 from model import ResNet
-from utils import create_data_loaders, AverageMeter
-from utils_guide import init_lr_scheduler, init_optim, load_config
+from utils import create_data_loaders, AverageMeter, load_config, save_state, Result
+from utils_guide import init_lr_scheduler, init_optim
 import time
 import torch
+import csv
+
 
 
 def train(epoch):
@@ -11,7 +15,7 @@ def train(epoch):
     end = time.time()
     for batch_idx, (input, depth, scale_factor) in enumerate(train_loader):
         if epoch >= config.test_epoch and iters % config.test_iters == 0:
-            test(epoch,batch_idx)
+            test()
 
         model.train() # switch to train mode
         optimizer.zero_grad()
@@ -23,7 +27,7 @@ def train(epoch):
         # compute pred
         end = time.time()
         pred = model(input)
-        loss = criterion(pred, target)
+        loss = criterion(pred, scale_factor)
         
         loss.backward() # compute gradient and do SGD step
         optimizer.step()
@@ -32,14 +36,14 @@ def train(epoch):
 
         # measure accuracy and record loss
         result = Result()
-        result.evaluate(pred.data, target.data)
+        result.evaluate(pred,scale_factor)
         average_meter.update(result, gpu_time, data_time, input.size(0))
         end = time.time()
         
         iters+=1
 
-        if (i + 1) % args.print_freq == 0:
-            print('=> output: {}'.format(output_directory))
+        if (batch_idx + 1) % config.print_freq == 0:
+            print('=> output: {}'.format("checkpoints"))
             print('Train Epoch: {0} [{1}/{2}]\t'
                   't_Data={data_time:.3f}({average.data_time:.3f}) '
                   't_GPU={gpu_time:.3f}({average.gpu_time:.3f})\n\t'
@@ -48,7 +52,7 @@ def train(epoch):
                   'Delta1={result.delta1:.3f}({average.delta1:.3f}) '
                   'REL={result.absrel:.3f}({average.absrel:.3f}) '
                   'Lg10={result.lg10:.3f}({average.lg10:.3f}) '.format(
-                  epoch, i+1, len(train_loader), data_time=data_time,
+                  epoch, batch_idx+1, len(train_loader), data_time=data_time,
                   gpu_time=gpu_time, result=result, average=average_meter.average()))
 
     avg = average_meter.average()
@@ -59,16 +63,42 @@ def train(epoch):
             'gpu_time': avg.gpu_time, 'data_time': avg.data_time})
 
 
+def test():
+    print("=> Running test:")
+    global best_metric
+    Avg = AverageMeter()
+    model.eval()
+    for batch_idx, (input, depth, scale_factor) in enumerate(val_loader):
+        input, scale_factor = input.cuda(), scale_factor.cuda()
+        with torch.no_grad():
+            pred = model(input)
+            prec = criterion(pred, scale_factor)
+        Avg.update(prec.item(), input.size(0))
+        if batch_idx % config.print_freq == 0:
+          print(f"Batch: {batch_idx}, Loss: {prec.cpu().numpy()}")
+
+    print(f"Avg Loss: {Avg.avg}")
+    if Avg.avg < best_metric:
+        best_metric = Avg.avg
+        save_state(config, model)
+        print('Best Result: {:.4f}\n'.format(best_metric))
+
+
 if __name__ == '__main__':
     model = ResNet(layers = 18)
     model.cuda()
+    print("=> Model created")
 
     config = load_config("configs/ScalePredicter.yaml")
 
     optimizer = init_optim(config, model)
     lr_scheduler = init_lr_scheduler(config, optimizer)
+    criterion = torch.nn.HuberLoss()
 
-    trainloader, val_loader = create_data_loaders(config)
+    train_loader, val_loader = create_data_loaders(config)
+
+    iters = 0 
+    best_metric = 100
 
     for epoch in range(config.start_epoch, config.nepoch):
         train(epoch)
