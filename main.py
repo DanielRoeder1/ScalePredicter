@@ -34,28 +34,27 @@ def train(epoch):
         gpu_time = time.time() - end
 
         # measure accuracy and record loss
-        result = Result()
-        result.evaluate(pred,scale_factor)
+        result = Result(pred,scale_factor)
         result.huber= loss.cpu().item()
         average_meter.update(result, gpu_time, data_time, input.size(0))
         end = time.time()
         
         iters+=1
 
+        avg_huber, avg_rmse, avg_mae, avg_gpu, avg_data = average_meter.get_avg()
         if (batch_idx + 1) % config.print_freq == 0:
             print('=> output: {}'.format("checkpoints"))
             print('Train Epoch: {0} [{1}/{2}]\t'
-                  't_Data={data_time:.3f}({average.data_time:.3f}) '
-                  't_GPU={gpu_time:.3f}({average.gpu_time:.3f})\n\t'
-                  'RMSE={result.rmse:.2f}({average.rmse:.2f}) '
-                  'MAE={result.mae:.2f}({average.mae:.2f}) '
-                  'Delta1={result.delta1:.3f}({average.delta1:.3f}) '
-                  'REL={result.absrel:.3f}({average.absrel:.3f}) '
-                  'Lg10={result.lg10:.3f}({average.lg10:.3f}) '.format(
+                  't_Data={data_time:.3f}({avg_data:.3f}) '
+                  't_GPU={gpu_time:.3f}({avg_gpu:.3f})\n\t'
+                  'RMSE={result.rmse:.2f}({avg_rmsee:.2f}) '
+                  'MAE={result.mae:.2f}({avg_mae:.2f}) '
+                  'Huber={result.huber:.2f}({avg_huber}:.2f}) '.format(
                   epoch, batch_idx+1, len(train_loader), data_time=data_time,
-                  gpu_time=gpu_time, result=result, average=average_meter.average()))
+                  gpu_time=gpu_time, result=result, avg_gpu = avg_gpu, avg_data= avg_data, 
+                  avg_huber = avg_huber, avg_rmse = avg_rmse, avg_mae = avg_mae))
 
-    avg = average_meter.average()
+    
     with open(train_csv, 'a') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow({'mse': avg.mse, 'rmse': avg.rmse, 'absrel': avg.absrel, 'lg10': avg.lg10,
@@ -77,16 +76,17 @@ def test():
             loss = criterion(pred, scale_factor)
         gpu_time = time.time() - end
 
-        result = Result()
+        result = Result(pred,scale_factor)
         result.evaluate(pred,scale_factor)
         result.huber= loss.cpu().item()
         average_meter.update(result, gpu_time, data_time, input.size(0))
         if batch_idx % config.print_freq == 0:
           print(f"Batch: {batch_idx}, Loss: {loss.cpu().numpy()}")
-
-    print(f"Avg Loss: {Avg.avg}")
-    if Avg.avg < best_metric:
-        best_metric = Avg.avg
+    
+    avg_huber, avg_rmse, avg_mae, _ , _ = average_meter.get_avg()
+    print(f"Avg Loss: Huber: {avg_huber}, RMSE {avg_rmse}, MAE {avg_mae}")
+    if avg_huber < best_metric:
+        best_metric = avg_huber
         save_state(config, model)
         print('Best Result: {:.4f}\n'.format(best_metric))
 

@@ -82,12 +82,8 @@ class AverageMeter(object):
         self.sum_data_time += n*data_time
         self.sum_gpu_time += n*gpu_time
 
-    def average(self):
-        avg = Result()
-        avg.update(
-            self.sum_huber / self.count, self.sum_rmse / self.count, self.sum_mae / self.count, 
-            self.sum_gpu_time / self.count, self.sum_data_time / self.count)
-        return avg
+    def get_avg(self):
+        return self.sum_huber / self.count, self.sum_rmse / self.count, self.sum_mae / self.count, self.sum_data_time / self.count, self.sum_gpu_time / self.count
 
 
 class Result:
