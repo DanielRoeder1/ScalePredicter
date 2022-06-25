@@ -112,6 +112,9 @@ class CnnRegressor(nn.Module):
         self.conv9 = nn.Conv2d(80, 100, kernel_size = 3, stride = 1, padding = 1)
         self.conv10 = nn.Conv2d(100,100, kernel_size = 3, stride = 1, padding = 1)
 
+        self.lin1 = nn.Linear(100,20)
+        self.lin2 = nn.Linear(20,1)
+
 
         self.conv1.apply(weights_init)
         self.conv2.apply(weights_init)
@@ -160,5 +163,11 @@ class CnnRegressor(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
+
+        x = self.lin1(x)
+        x = self.activation(x)
+        x = self.lin2(x)
+
+        return x
     
 
