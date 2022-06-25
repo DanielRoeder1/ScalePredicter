@@ -96,20 +96,21 @@ class ResNet(nn.Module):
 
 class CnnRegressor(nn.Module):
     def __init__(self):
+        super(CnnRegressor, self).__init__()
         self.conv1 = nn.Conv2d(4, 20, kernel_size = 3, stride = 1, padding = 1)
         self.conv2 = nn.Conv2d(20,20, kernel_size = 3, stride = 1, padding = 1)
         
         self.conv3 = nn.Conv2d(20, 40, kernel_size = 3, stride = 1, padding = 1)
         self.conv4 = nn.Conv2d(40,40, kernel_size = 3, stride = 1, padding = 1)
 
-        self.conv5 = nn.Conv2d(60, 60, kernel_size = 3, stride = 1, padding = 1)
+        self.conv5 = nn.Conv2d(40, 60, kernel_size = 3, stride = 1, padding = 1)
         self.conv6 = nn.Conv2d(60,60, kernel_size = 3, stride = 1, padding = 1)
 
         self.conv7 = nn.Conv2d(60, 80, kernel_size = 3, stride = 1, padding = 1)
         self.conv8 = nn.Conv2d(80,80, kernel_size = 3, stride = 1, padding = 1)
 
-        self.conv7 = nn.Conv2d(80, 100, kernel_size = 3, stride = 1, padding = 1)
-        self.conv8 = nn.Conv2d(100,100, kernel_size = 3, stride = 1, padding = 1)
+        self.conv9 = nn.Conv2d(80, 100, kernel_size = 3, stride = 1, padding = 1)
+        self.conv10 = nn.Conv2d(100,100, kernel_size = 3, stride = 1, padding = 1)
 
 
         self.conv1.apply(weights_init)
@@ -120,12 +121,12 @@ class CnnRegressor(nn.Module):
         self.conv6.apply(weights_init)
         self.conv7.apply(weights_init)
         self.conv8.apply(weights_init)
+        self.conv9.apply(weights_init)
+        self.conv10.apply(weights_init)
 
         self.max = nn.MaxPool2d(2)
-        self.activation = nn.ReLu()
+        self.activation = nn.ReLU()
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
-
-        self.conv3 = nn.Conv2d()
     
     def forward(self, x):
         x = self.conv1(x)
@@ -149,6 +150,12 @@ class CnnRegressor(nn.Module):
         x = self.conv7(x)
         x = self.activation(x)
         x = self.conv8(x)
+        x = self.activation(x)
+        x = self.max(x)
+
+        x = self.conv9(x)
+        x = self.activation(x)
+        x = self.conv10(x)
         x = self.activation(x)
 
         x = self.avgpool(x)
