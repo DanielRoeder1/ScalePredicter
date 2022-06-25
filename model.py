@@ -1,3 +1,4 @@
+from turtle import forward
 import torch.nn as nn
 import torchvision
 import math
@@ -91,3 +92,66 @@ class ResNet(nn.Module):
         x = self.relu(x)
 
         return x
+
+
+class CnnRegressor(nn.Module):
+    def __init__(self):
+        self.conv1 = nn.Conv2d(4, 20, kernel_size = 3, stride = 1, padding = 1)
+        self.conv2 = nn.Conv2d(20,20, kernel_size = 3, stride = 1, padding = 1)
+        
+        self.conv3 = nn.Conv2d(20, 40, kernel_size = 3, stride = 1, padding = 1)
+        self.conv4 = nn.Conv2d(40,40, kernel_size = 3, stride = 1, padding = 1)
+
+        self.conv5 = nn.Conv2d(60, 60, kernel_size = 3, stride = 1, padding = 1)
+        self.conv6 = nn.Conv2d(60,60, kernel_size = 3, stride = 1, padding = 1)
+
+        self.conv7 = nn.Conv2d(60, 80, kernel_size = 3, stride = 1, padding = 1)
+        self.conv8 = nn.Conv2d(80,80, kernel_size = 3, stride = 1, padding = 1)
+
+        self.conv7 = nn.Conv2d(80, 100, kernel_size = 3, stride = 1, padding = 1)
+        self.conv8 = nn.Conv2d(100,100, kernel_size = 3, stride = 1, padding = 1)
+
+
+        self.conv1.apply(weights_init)
+        self.conv2.apply(weights_init)
+        self.conv3.apply(weights_init)
+        self.conv4.apply(weights_init)
+        self.conv5.apply(weights_init)
+        self.conv6.apply(weights_init)
+        self.conv7.apply(weights_init)
+        self.conv8.apply(weights_init)
+
+        self.max = nn.MaxPool2d(2)
+        self.activation = nn.ReLu()
+        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+
+        self.conv3 = nn.Conv2d()
+    
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.activation(x)
+        x = self.conv2(x)
+        x = self.activation(x)
+        x = self.max(x)
+
+        x = self.conv3(x)
+        x = self.activation(x)
+        x = self.conv4(x)
+        x = self.activation(x)
+        x = self.max(x)
+
+        x = self.conv5(x)
+        x = self.activation(x)
+        x = self.conv6(x)
+        x = self.activation(x)
+        x = self.max(x)
+
+        x = self.conv7(x)
+        x = self.activation(x)
+        x = self.conv8(x)
+        x = self.activation(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+    
+
