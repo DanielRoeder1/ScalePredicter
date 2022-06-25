@@ -15,6 +15,7 @@ optim_config:
 start_epoch: 0
 nepoch: 11
 test_epoch: 0
+only_test_epoch: True
 test_iters: 3000
 print_freq: 100
 

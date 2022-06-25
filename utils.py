@@ -52,7 +52,7 @@ def load_config(path):
 
 def save_state(config, model):
     print('==> Saving model ...')
-    env_name =  + 'model' + str(config.manual_seed)
+    env_name =  'model' 
     save_path = os.path.join('checkpoints', env_name)
     os.makedirs(save_path, exist_ok=True)
     model_state_dict = model.state_dict()
@@ -88,7 +88,7 @@ class AverageMeter(object):
 
 class Result:
     def __init__(self, pred, scale_factor):
-        pred = pred.cpu().numpy()
+        pred = pred.detach().cpu().numpy()
         scale_factor = scale_factor.cpu().numpy()
 
         self.mae = self.mae(pred, scale_factor)

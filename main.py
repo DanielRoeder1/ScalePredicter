@@ -12,8 +12,12 @@ def train(epoch):
     average_meter = AverageMeter()
     global iters
     end = time.time()
+
+    if config.only_test_epoch:
+        test()
+
     for batch_idx, (input, depth, scale_factor) in enumerate(train_loader):
-        if epoch >= config.test_epoch and iters % config.test_iters == 0:
+        if epoch >= config.test_epoch and iters % config.test_iters == 0 and not config.only_test_epoch:
             test()
 
         model.train() # switch to train mode
@@ -41,25 +45,26 @@ def train(epoch):
         
         iters+=1
 
-        avg_huber, avg_rmse, avg_mae, avg_gpu, avg_data = average_meter.get_avg()
+        
         if (batch_idx + 1) % config.print_freq == 0:
+            avg_huber, avg_rmse, avg_mae, avg_gpu, avg_data = average_meter.get_avg()
             print('=> output: {}'.format("checkpoints"))
             print('Train Epoch: {0} [{1}/{2}]\t'
                   't_Data={data_time:.3f}({avg_data:.3f}) '
                   't_GPU={gpu_time:.3f}({avg_gpu:.3f})\n\t'
-                  'RMSE={result.rmse:.2f}({avg_rmsee:.2f}) '
+                  'RMSE={result.rmse:.2f}({avg_rmse:.2f}) '
                   'MAE={result.mae:.2f}({avg_mae:.2f}) '
-                  'Huber={result.huber:.2f}({avg_huber}:.2f}) '.format(
+                  'Huber={result.huber:.2f}({avg_huber:.2f}) '.format(
                   epoch, batch_idx+1, len(train_loader), data_time=data_time,
                   gpu_time=gpu_time, result=result, avg_gpu = avg_gpu, avg_data= avg_data, 
                   avg_huber = avg_huber, avg_rmse = avg_rmse, avg_mae = avg_mae))
 
     
-    with open(train_csv, 'a') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writerow({'mse': avg.mse, 'rmse': avg.rmse, 'absrel': avg.absrel, 'lg10': avg.lg10,
-            'mae': avg.mae, 'delta1': avg.delta1, 'delta2': avg.delta2, 'delta3': avg.delta3,
-            'gpu_time': avg.gpu_time, 'data_time': avg.data_time})
+    #with open(train_csv, 'a') as csvfile:
+    #    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    #    writer.writerow({'mse': avg.mse, 'rmse': avg.rmse, 'absrel': avg.absrel, 'lg10': avg.lg10,
+    #        'mae': avg.mae, 'delta1': avg.delta1, 'delta2': avg.delta2, 'delta3': avg.delta3,
+    #        'gpu_time': avg.gpu_time, 'data_time': avg.data_time})
 
 
 def test():
@@ -77,7 +82,6 @@ def test():
         gpu_time = time.time() - end
 
         result = Result(pred,scale_factor)
-        result.evaluate(pred,scale_factor)
         result.huber= loss.cpu().item()
         average_meter.update(result, gpu_time, data_time, input.size(0))
         if batch_idx % config.print_freq == 0:
